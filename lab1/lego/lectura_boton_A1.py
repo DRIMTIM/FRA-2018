@@ -35,11 +35,11 @@ button_port = int(sensor_port_number_dict['button'])
 if button_port != 0:
     button = Touch(brick, number2NXTPort(button_port))
     value = button.get_sample()
-    print('Valor inicial del botón: {}'.format(value))
+    print 'Valor inicial del botón: {}'.format(value)
 
 while not value == 1:
     value = button.get_sample()
     if value == 1:
-        print('Se pulsó el botón el valor es: {}'.format(value))
+        print 'Se pulsó el botón el valor es: {}'.format(value)
     else:
-        print('El valor actual del botón es: {}'.format(value))
+        print 'El valor actual del botón es: {}'.format(value)
