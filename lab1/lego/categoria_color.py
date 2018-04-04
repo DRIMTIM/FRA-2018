@@ -8,6 +8,9 @@ import nxt.locator
 from nxt.sensor import *
 import time
 
+COLOR_VERDE = 3
+COLOR_AZUL = 2
+COLOR_ROJO = 5
 
 def number2NXTPort(port_number):
     if port_number == 1:
@@ -30,18 +33,26 @@ while brick is None:
 
 
 sensor_port_number_dict = {'button': 1, 'distance': 0, 'light': 0, 'gray': 0, 'color': 0}
-button_port = int(sensor_port_number_dict['button'])
+color_port = 3
 
-if button_port != 0:
-    button = Touch(brick, number2NXTPort(button_port))
-    value = button.get_sample()
-    print 'Valor inicial del botón: {}'.format(value)
+color_sensor = Color20(brick, number2NXTPort(color_port))
+color_value = color_sensor.get_sample()
+print color_value
 
+if color_value == COLOR_AZUL:
+    print 'El color es Azul'
+if color_value == COLOR_ROJO:
+    print 'El color es Rojo'
+else:
+    print 'Color no reconocido'
 
-estado = button.get_sample()
 while 1:
-    value = button.get_sample()
-    if estado <> value:
-        print 'Se pulsó el botón el valor es: {}'.format(value)
-        estado = value
-
+    estado = color_sensor.get_sample()
+    if estado <> color_value:
+        if estado == COLOR_AZUL:
+            print 'El color es Azul'
+        if estado == COLOR_ROJO:
+            print 'El color es Rojo'
+        else:
+            print 'Color no reconocido'
+        color_value = estado

@@ -25,8 +25,8 @@ for iter in enumerate(modules):
         print 'Valor inicial del {}: {}'.format(sensor_name, value)
 
 while 1:
-    value = get_value_function(port_number)
+    estado = get_value_function(port_number)
     if value == 1:
-        print 'Se pulsó el {} el valor es: {}'.format(sensor_name, value)
-    else:
-        print 'El valor actual del {} es: {}'.format(sensor_name, value)
+        if estado <> value:
+            print 'Se pulsó el botón el valor es: {}'.format(value)
+            estado = value

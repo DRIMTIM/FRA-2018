@@ -6,6 +6,7 @@ sys.path.insert(0, '/usr/share/sugar/activities/TurtleBots.activity/plugins/nxt_
 
 import nxt.locator
 from nxt.sensor import *
+from nxt.motor import *
 import time
 
 def number2NXTPort(port_number):
@@ -19,12 +20,12 @@ def number2NXTPort(port_number):
         return PORT_4
 
 def levantar_barrera():
-    motor_barrera.turn(500, 90)
+    motor_barrera.turn(-64, 90)
 
 
 def bajar_barrera():
     # chequear sentido!
-    motor_barrera.turn(-500, 90)
+    motor_barrera.turn(64, 90)
 
 
 def esperar(segundos):
@@ -40,13 +41,12 @@ while brick is None:
         brick = None
 
 # ver que poner como distancia en la cual se empiezan a contar los 2s
-DISTANCIA_MIN = 1000
-DISTANCIA_REF = 2500
+DISTANCIA_MIN = 10
 TIEMPO_ESPERA = 2
-ESPERA_MIN = 0.1
-motor_barrera = Motor(brick, PORT_B)
+motor_barrera = Motor(brick, PORT_A)
 sensor_dist_vehiculo = Ultrasonic(brick, PORT_1)
-sensor_dist_ref = Ultrasonic(brick, PORT_2)
+4
+print 'Paso'
 
 while 1:
     distancia_vehiculo = sensor_dist_vehiculo.get_sample()
@@ -55,11 +55,10 @@ while 1:
         esperar(TIEMPO_ESPERA)
         levantar_barrera()
 
-        distancia_ref = sensor_dist_ref.get_sample()
-        while distancia_ref >= DISTANCIA_REF:
-            distancia_ref = sensor_dist_ref.get_sample()
+        distancia_vehiculo = distancia_vehiculo.get_sample()
+        print distancia_vehiculo + ' antes while'
+        while distancia_vehiculo <= DISTANCIA_MIN:
+            distancia_vehiculo = distancia_vehiculo.get_sample()
 
-        while distancia_ref < DISTANCIA_REF:
-            distancia_ref = sensor_dist_ref.get_sample()
-
+        print distancia_vehiculo + ' despues del while'
         bajar_barrera()
