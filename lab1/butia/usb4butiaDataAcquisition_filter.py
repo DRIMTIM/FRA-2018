@@ -25,40 +25,47 @@ import time
 
 SAMPLES = 400
 
-def storeExperiment(sensor_name, samples, samples_timestamps):
+def storeExperiment(sensor_name, samples, samples_timestamps, filter_samples, filter_sample2):
     timestr = time.strftime("%Y%m%d-%H%M%S")
     filename = sensor_name + "-" + timestr + ".log.filter"
     file = open(filename,"w")
     for iter in xrange(len(samples)):
-        file.write(samples_timestamps[iter] + " " + str(samples[iter]) + "\n")
+        file.write(samples_timestamps[iter] + "  " + str(samples[iter]) + "  " + str(filter_samples[iter]) + "  " + str(filter_sample2[iter]) + "\n")
     file.close()
     print "se guardó el experimento: ", filename
 
 def get_samples(port_number, get_value):
     samples = []
     timestamps = []
+    filter_samples = []
+    filter_samples2 = []
     start_millisec = time.time()*1000.0
     if port_number > 0:
-        val_aux = 0
         for sample_number in xrange(SAMPLES):
             if sample_number == 0:
                 val = get_value(port_number)
+                val_posta = val
+                val2 = val
             else:
-                val = val_aux + 2 * (get_value() - val_aux)
+                val_posta = get_value(port_number)
+                val = val + 0.9 * (val_posta - val)
+                val2 = val2 + 0.1 * (val_posta - val2)
 
-            val_aux = val
+
             val_time = str(time.time()*1000.0 - start_millisec)
             if val == -1:
                 error = True
             else:
-                samples.append(val)
+                filter_samples2.append(val2)
+                filter_samples.append(val)
+                samples.append(val_posta)
                 timestamps.append(val_time)
                 error = False
     else:
         error = True
     if error:
         print 'Fallo de comunicación con el sensor, revise conexión del cable que lo conecta a la placa USB4Butiá, si el problema persiste cambielo'
-    return error, samples, timestamps
+    return error, samples, timestamps, filter_samples, filter_samples2
 
 butia = usb4butia.USB4Butia()
 #butia = pybot_client.robot() #for communication through pybot server
@@ -113,10 +120,10 @@ for iter in modules:
 for sensor_name in sensor_present:
     port_number = int(sensor_port_number_dict[sensor_name])
     print "encontré el sensor: " + sensor_name + " " + "conectado al puerto: ", port_number
-    error, samples, timestamps = get_samples(port_number, sensor_callback_dict[sensor_name])
+    error, samples, timestamps, filter_samples, filter_samples2 = get_samples(port_number, sensor_callback_dict[sensor_name])
 
     if not error:
-        storeExperiment(sensor_name, samples, timestamps)
+        storeExperiment(sensor_name, samples, timestamps, filter_samples, filter_samples2)
 
 butia.close()
 

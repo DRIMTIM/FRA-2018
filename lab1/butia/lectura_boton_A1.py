@@ -17,16 +17,16 @@ if modules == ['-1']:
 else:
     print 'Se detectaron los siguientes servicios disponibles: ', modules
 
-for iter in enumerate(modules):
+for iter in modules:
     if iter.startswith('button:'):
         port_number = iter.strip('button:')
         sensor_name = 'ButiaContactSensor'
         value = butia.getButton(port_number)
         print 'Valor inicial del {}: {}'.format(sensor_name, value)
 
+estado = butia.getButton(port_number)
 while 1:
-    estado = get_value_function(port_number)
-    if value == 1:
-        if estado <> value:
-            print 'Se pulsó el botón el valor es: {}'.format(value)
-            estado = value
+    value = get_value_function(port_number)
+    if estado <> value:
+        print 'Se pulsó el botón el valor es: {}'.format(value)
+        estado = value

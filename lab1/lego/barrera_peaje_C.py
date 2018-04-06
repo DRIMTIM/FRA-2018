@@ -41,22 +41,23 @@ while brick is None:
         brick = None
 
 # ver que poner como distancia en la cual se empiezan a contar los 2s
-DISTANCIA_MIN = 10
+DISTANCIA_MIN = 20
 TIEMPO_ESPERA = 2
 motor_barrera = Motor(brick, PORT_A)
 sensor_dist_vehiculo = Ultrasonic(brick, PORT_1)
 
 while 1:
     distancia_vehiculo = sensor_dist_vehiculo.get_sample()
+    print str(distancia_vehiculo)
 
     if distancia_vehiculo < DISTANCIA_MIN:
         esperar(TIEMPO_ESPERA)
         levantar_barrera()
 
-        distancia_vehiculo = distancia_vehiculo.get_sample()
-        print str(distancia_vehiculo) + ' antes while'
+        distancia_vehiculo = sensor_dist_vehiculo.get_sample()
         while distancia_vehiculo <= DISTANCIA_MIN:
-            distancia_vehiculo = distancia_vehiculo.get_sample()
+            distancia_vehiculo = sensor_dist_vehiculo.get_sample()
 
         print str(distancia_vehiculo) + ' despues del while'
+        esperar(TIEMPO_ESPERA)
         bajar_barrera()
