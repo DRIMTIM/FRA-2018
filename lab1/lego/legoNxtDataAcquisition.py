@@ -91,7 +91,7 @@ while brick is None:
 #Fill this dictionary with the port where each sensor is connected, use 0 if the sensor is not connected; example:
 # sensor_port_number_dict = {'button': 1, 'distance': 0, 'light': 0, 'gray': 0, 'color': 0}
 # corresponds with the button sensor connected to the port number one and the rest disconnected.
-sensor_port_number_dict = {'button': 0, 'distance': 0, 'light': 0, 'gray': 0, 'color': 3}
+sensor_port_number_dict = {'button': 0, 'distance': 0, 'light': 0, 'gray': 1, 'color': 0}
 sensor_callback_dict = {}
 sensor_present = []
 light_port = int(sensor_port_number_dict['light'])
