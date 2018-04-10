@@ -9,7 +9,7 @@ import time
 RIGHT_MOTOR = 1
 LEFT_MOTOR = 0
 SENSE = 1
-POWER = 300
+POWER = 500
 
 CICLOS = 50
 
@@ -25,7 +25,7 @@ else:
 
 
 def doblar_izquierda(sense, power):
-    # Detengo motor izquierdo
+    # Avanzo motor izquierdo en sentido contrario al derecho
     # Avanzo con el motor derecho
     butia.set2MotorSpeed(sense, power, 0, power)
 
@@ -33,20 +33,20 @@ def doblar_izquierda(sense, power):
 def avanzar(sense, power):
     butia.set2MotorSpeed(sense, power, sense, power)
 
+
 def detener():
+    butia.set2MotorSpeed(0, 0, 0, 0)
 
 
-
-i = 0
-while i < CICLOS:
+while 1:
     avanzar(SENSE, POWER)
     # dejo avanzar 2 segundos
     time.sleep(2)
+    detener()
     # doblo
     doblar_izquierda(SENSE, POWER)
     # dejo doblar 0.5 segundos
     time.sleep(0.7)
-    # aumento un ciclo
-    i += 1
+    detener()
 
 butia.close()
