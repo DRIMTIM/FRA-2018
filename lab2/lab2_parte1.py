@@ -163,20 +163,25 @@ def doblar_esquivando():
     disminuir = 1
     direccion = 0
     while not es_negro:
+        power_der = power_der - disminuir
         if power_der < 0:
             direccion = 1
             power_der = -1 * power_der
         if power_der > 1000:
             power_der = 1000
         es_negro = es_negro_sensor_der()  # or es_negro_sensor_izq
-        butia.set2MotorSpeed(0, power_izq, direccion, power_der - disminuir)
-        disminuir -= 1  # ver este valor
+        butia.set2MotorSpeed(0, power_izq, direccion, power_der)
+        disminuir += 1  # ver este valor
 
 
 # revisar, testear
 def esquivar_obstaculo():
     girar_izq_eje(POWER)
-    time.sleep(0.5)
+    # time.sleep(0.5) esto podria hacerse en vez de lo de la distancia de abajo
+    while hay_obstaculo_adelante():
+        girar_izq_eje(POWER)
+
+    detener()
     doblar_esquivando()
 
 
