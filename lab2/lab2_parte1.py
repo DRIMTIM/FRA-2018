@@ -12,17 +12,13 @@ RIGHT_MOTOR = 1
 LEFT_MOTOR = 0
 SENSE = 0
 POWER = 1000
-POWER_MIN = 600
+POWER_MIN = 700
 
 BLACK_COLOR_LEFT = 42000
 BLACK_COLOR_RIGHT = 36000
 
 butia = usb4butia.USB4Butia()
 modules = butia.getModulesList()
-sensor_name = " "
-sensor_callback_dict = {}
-sensor_port_number_dict = {}
-sensor_present = []
 casa_actual = 0
 casa_objetivo = 1
 medida_anterior_hay_casa = False
@@ -79,11 +75,10 @@ def avanzar(sense, power):
 def atras(power):
     # cambiar el sentido cuando el estado es volver
     butia.set2MotorSpeed(1, power, 1, power)
-    time.sleep(0.5)
+    time.sleep(0.3)
 
 
 def detener():
-    print('Se detuvo')
     butia.set2MotorSpeed(0, 0, 0, 0)
 
 
@@ -95,13 +90,15 @@ def hay_obstaculo_adelante():
 
 
 def hay_casa():
-    global val
-    # al volver siempre retorno false
-    # print('La distancia es: {}'.format(sensor_distance_right(4)))
-    val_posta = sensor_distance_right(3)
-    val = val + 0.8 * (val_posta - val)
-    return val < 40000
-
+	if robot_state == State.ENTREGAR_PEDIDO:
+		global val
+		# al volver siempre retorno false
+		# print('La distancia es: {}'.format(sensor_distance_right(4)))
+		val_posta = sensor_distance_right(3)
+		val = val + 0.5 * (val_posta - val)
+		return val < 40000 # ajustar
+	else:
+		return False
 
 def es_negro_sensor_izq():
     global val_grey_izq
@@ -113,20 +110,25 @@ def es_negro_sensor_izq():
 def es_negro_sensor_der():
     global val_grey_der
     val_posta = sensor_grey_right(4)
-    # teniamos val_grey_izq en la formula de aca abajo
     val_grey_der = val_grey_der + 0.5 * (val_posta - val_grey_der)
     return val_grey_der > BLACK_COLOR_RIGHT
 
 
 def llego_a_pizzeria():
-    if sensor_button(5) == 1:
-        return True
-    else:
-        return False
+	if robot_state == State.VOLVER_PIZZERIA:
+		if sensor_button(5) == 1:
+			return True
+		else:
+			return False
+	else:
+		return False
 
 
 def finalizo_tiempo():
-    return False
+	if datetime.datetime.now() < tiempo_limite
+		return False
+	else:
+		return True
 
 
 # revisar alternativa
@@ -141,16 +143,15 @@ def cambiar_direccion2():
 def cambiar_direccion():
     estado = 0
     girar_izq_eje(POWER)
-    time.sleep(0.4)
+	# Se gira con sleep para que salga de la linea
+    time.sleep(0.6)
     while True:
-        if estado == 1 and es_negro_sensor_izq():
-            estado = 2
-        elif estado == 2 and es_negro_sensor_der():
+        if estado == 0 and es_negro_sensor_izq():
+            estado = 1
+        elif estado == 1 and es_negro_sensor_der():
             print('salgo')
             break
         else:
-            if estado == 0:
-                estado = 1
             girar_izq_eje(POWER)
 
 
@@ -184,6 +185,46 @@ def esquivar_obstaculo():
     detener()
     doblar_esquivando()
 
+'''
+IDEA:
+	1. Si encuentro un obstaculo al frente arranco a doblar a la izquierda de a poco, cuanto mas tiempo detecte el obstaculo
+	2. Una vez que no detecto obtaculo al frente, me fijo si hay obstaculo al costado derecho (con el sensor de casas, pero otra distancia).
+	3. Si detencto obstaculo al costado avanzo.
+	4. Si no detecto obstaculos en ninguno de los sensores me muevo hacia la derecha con una direccion fija.
+	5. La direccion fija es para que no lleguen los dos sensores en negro al tocar la linea, y no darme vuelta.
+	6. Cuando detecto sensor derecho en rojo, la rutina termina.
+	
+	Notar que la subrutina principal tiene una tendenica a doblar a la izq, es intencionar para que se ajuste la 
+	direccion ya que seguro tiene el sensor izq en negro
+	
+'''
+def hay_obstaculo_al_costado():
+	global val
+	# al volver siempre retorno false
+	# print('La distancia es: {}'.format(sensor_distance_right(4)))
+	val_posta = sensor_distance_right(3)
+	val = val + 0.5 * (val_posta - val)
+	return val < 20000 # ajustar
+		
+
+def esquivar_obstaculo2():
+	offset = 0
+	while True
+		if hay_obstaculo_adelante():
+			offset -= 2
+            doblar_izquierda(SENSE, POWER)
+		elif hay_obstaculo_al_costado():
+			offset = 0
+			avanzar(SENSE, POWER)
+		elif  es_negro_sensor_der():
+			#llego a la linea, salgo
+			detener()
+			offset = 0
+			break
+		else:
+			offset = -POWER/2 # ajustar este factor
+			doblar_derecha(SENSE, POWER)
+
 
 robot_state = State.ENTREGAR_PEDIDO
 
@@ -211,6 +252,8 @@ val_grey_der = sensor_grey_right(4)
 offset = 0
 doblando_izq = 0
 
+tiempo_limite = datetime.datetime.now() + datetime.timedelta(minutes = 5)
+
 while True:
     hay_casa_aux = hay_casa()
     if finalizo_tiempo():
@@ -230,8 +273,9 @@ while True:
         if casa_objetivo > 3:
             detener()
             print('SE ENTREGARON TODOS LOS PEDIDOS')
+			break
 
-    elif robot_state == State.ENTREGAR_PEDIDO and hay_casa_aux and not medida_anterior_hay_casa:
+    elif hay_casa_aux and not medida_anterior_hay_casa:
         casa_actual += 1
         offset = 0
         if casa_objetivo == casa_actual:
@@ -244,18 +288,18 @@ while True:
             doblando_izq = 0
             offset = 0
             avanzar(SENSE, POWER)
-        elif es_negro_sensor_izq():
-            if doblando_izq != 1:
-                offset = 0
-            doblando_izq = 1
-            offset -= 1.3
-            doblar_izquierda(SENSE, POWER)
-        else:
+        elif es_negro_sensor_der(): # se chequa este primero para contemplar los obstaculos
             if doblando_izq != 2:
                 offset = 0
             doblando_izq = 2
-            offset -= 1.3
+            offset -= 2
             doblar_derecha(SENSE, POWER)
+		else:
+			if doblando_izq != 1:
+				offset = 0
+			doblando_izq = 1
+			offset -= 2
+			doblar_izquierda(SENSE, POWER)
 
     medida_anterior_hay_casa = hay_casa_aux
 
